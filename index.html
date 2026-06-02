@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drylane.io - The Dry Stack is coming online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0c0d12;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* WebGL canvas container */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Flash overlay */
+        #flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            background-color: white;
+            opacity: 0;
+            transition: opacity 0.03s linear;
+        }
+
+        /* Atmospheric fog */
+        .atmospheric-fog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+            background: repeating-linear-gradient(90deg, transparent, rgba(50,55,70,0.06) 10%, rgba(50,55,70,0.12) 25%, transparent 40%);
+            animation: driftFog 12s linear infinite;
+        }
+
+        @keyframes driftFog {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Foreground fog */
+        .foreground-fog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 4;
+            background: radial-gradient(circle, transparent 15%, rgba(12,13,18,0.4) 55%, rgba(6,7,10,0.95) 100%);
+        }
+
+        /* Lightning canvas - ABSOLUTE TOP */
+        #lightning-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            display: block;
+        }
+
+        /* Typography overlay */
+        .text-overlay {
+            position: fixed;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 50;
+            pointer-events: none;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: rgba(230, 239, 255, 0.9);
+            text-shadow: 0 0 20px rgba(106, 168, 254, 0.3);
+            margin-bottom: 12px;
+            letter-spacing: 4px;
+        }
+
+        .tagline {
+            font-size: 0.85rem;
+            color: rgba(200, 210, 230, 0.7);
+            text-shadow: 0 0 10px rgba(106, 168, 254, 0.2);
+            margin-bottom: 8px;
+            letter-spacing: 3px;
+        }
+
+        .stack {
+            font-size: 0.7rem;
+            color: rgba(160, 170, 200, 0.5);
+            letter-spacing: 2px;
+            word-spacing: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.5rem;
+                letter-spacing: 2px;
+            }
+
+            .tagline {
+                font-size: 0.65rem;
+                letter-spacing: 2px;
+            }
+
+            .stack {
+                font-size: 0.55rem;
+                word-spacing: 4px;
+            }
+
+            .text-overlay {
+                bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="flash-overlay"></div>
+    <div class="atmospheric-fog"></div>
+    <div class="foreground-fog"></div>
+    <canvas id="lightning-canvas"></canvas>
+
+    <div class="text-overlay">
+        <div class="title">DRYLANE.IO</div>
+        <div class="tagline">The Dry Stack is coming online.</div>
+        <div class="stack">Facts / Nio / Zao / Unda</div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        const lightningCanvas = document.getElementById('lightning-canvas');
+        const flashOverlay = document.getElementById('flash-overlay');
+        let lightningCtx;
+
+        function resizeCanvases() {
+        lightningCanvas.width = window.innerWidth;
+        lightningCanvas.height = window.innerHeight;
+        }
+
+        //recursive lightning branch engine
+        function drawLightningBranch(ctx, startX, startY, endY, displacement, thickness) {
+        let curX = startX;
+        let curY = startY;
+        ctx.lineWidth = thickness;
+        ctx.lineCap = 'round';
+
+        while (curY < endY) {
+        let nextY = curY + (Math.random() * 15 + 10);
+        if (nextY > endY) nextY = endY;
+
+        let nextX = curX + (Math.random() * displacement * 2 - displacement);
+
+        ctx.beginPath();
+        ctx.moveTo(curX, curY);
+        ctx.lineTo(nextX, nextY);
+        ctx.stroke();
+
+        //branching forks
+        if (Math.random() > 0.94 && thickness > 1.2) {
+        drawLightningBranch(ctx, nextX, nextY, nextY + (endY - nextY) * 0.5, displacement * 1.2, thickness * 0.6);
+        }
+
+        curX = nextX;
+        curY = nextY;
+        }
+        }
+
+        function triggerLightning() {
+        if (!lightningCtx) return;
+
+        // Clear canvas
+        lightningCtx.clearRect(0, 0, lightningCanvas.width, lightningCanvas.height);
+
+        // Setup elegant lightning style
+        lightningCtx.shadowBlur = 12;
+        lightningCtx.shadowColor = '#6ea8fe';
+
+        // Draw main bolt (bright white/blue)
+        lightningCtx.strokeStyle = '#e6efff';
+        lightningCtx.lineWidth = 3;
+
+        const startX = lightningCanvas.width * (0.3 + Math.random() * 0.4);
+        const endY = lightningCanvas.height * (0.65 + Math.random() * 0.2);
+
+        drawLightningBranch(lightningCtx, startX, 0, endY, 22, 3);
+
+        // Sometimes draw a secondary bolt
+        if (Math.random() > 0.7) {
+        lightningCtx.strokeStyle = '#c8d9ff';
+        lightningCtx.lineWidth = 2;
+        const startX2 = startX + (Math.random() * 100 - 50);
+        drawLightningBranch(lightningCtx, startX2, 0, endY * 0.8, 18, 2);
+        }
+
+        lightningCtx.shadowBlur = 0;
+
+        // Gentle flash - not too harsh
+        flashOverlay.style.opacity = '0.6';
+        document.body.style.backgroundColor = '#151a2a';
+
+        setTimeout(() => {
+        flashOverlay.style.opacity = '0';
+        document.body.style.backgroundColor = '#0c0d12';
+        }, 80);
+
+        // Clear lightning after it fades
+        setTimeout(() => {
+        lightningCtx.clearRect(0, 0, lightningCanvas.width, lightningCanvas.height);
+        }, 180);
+        }
+
+        // Initialize lightning canvas
+        lightningCtx = lightningCanvas.getContext('2d');
+        resizeCanvases();
+
+        // Setup THREE.js
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = null;
+
+        const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        container.appendChild(renderer.domElement);
+
+        scene.fog = new THREE.FogExp2(0x0c0d12, 0.012);
+
+        const particleCount = 20000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const initialData = [];
+
+        const baseColor = new THREE.Color(0x1a1c20);
+        const outerColor = new THREE.Color(0x3e444f);
+
+        for (let i = 0; i < particleCount; i++) {
+        const y = Math.random() * 130.0;
+        let profileRadius = 2.0 + Math.pow(y / 130.0, 2.5) * 45.0;
+        if (y < 15.0) profileRadius += Math.pow((15.0 - y) / 15.0, 2.0) * 12.0;
+
+        const radius = profileRadius + (Math.random() * 8.0 - 4.0);
+        const angle = Math.random() * Math.PI * 2;
+
+        initialData.push({ angle, speed: Math.random() * 0.4 + 0.8, rise: Math.random() * 10.0 + 15.0, baseRadius: radius, yOffset: y });
+
+        positions[i * 3] = Math.cos(angle) * radius;
+        positions[i * 3 + 1] = y;
+        positions[i * 3 + 2] = Math.sin(angle) * radius;
+
+        const mixedColor = baseColor.clone().lerp(outerColor, Math.random());
+        colors[i * 3] = mixedColor.r;
+        colors[i * 3 + 1] = mixedColor.g;
+        colors[i * 3 + 2] = mixedColor.b;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({ size: 0.85, vertexColors: true, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false });
+        const particleSystem = new THREE.Points(geometry, material);
+        scene.add(particleSystem);
+
+        const clock = new THREE.Clock();
+        let lastLightningTime = 0;
+        const lightningInterval = 5000;
+
+        function animate() {
+        requestAnimationFrame(animate);
+
+        const elapsedTime = clock.getElapsedTime();
+        const pos = geometry.attributes.position;
+
+        const now = Date.now();
+        if (now - lastLightningTime > lightningInterval + Math.random() * 3000) {
+        lastLightningTime = now;
+        triggerLightning();
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+        const d = initialData[i];
+        let y = (elapsedTime * d.rise + d.yOffset) % 130.0;
+        let rad = 2.0 + Math.pow(y / 130.0, 2.5) * 45.0;
+        if (y < 15.0) rad += Math.pow((15.0 - y) / 15.0, 2.0) * 12.0;
+        rad += (d.baseRadius - rad) * 0.3;
+
+        const angle = d.angle - elapsedTime * ((8.5 / (rad * 0.15 + 1.0)) * d.speed);
+        const x = Math.cos(angle) * rad + Math.sin(y * 0.03 + elapsedTime * 1.5) * 4.0;
+        const z = Math.sin(angle) * rad + Math.cos(y * 0.02 + elapsedTime * 1.2) * 4.0;
+
+        pos.setXYZ(i, x, y, z);
+        }
+        pos.needsUpdate = true;
+
+        camera.position.set(55.0, 25.0, 75.0);
+        camera.lookAt(0, 50.0, 0);
+        renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        resizeCanvases();
+        });
+
+        animate();
+    </script>
+</body>
+</html>
