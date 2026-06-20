@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code &amp; usage — The Dry Stack</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #0c0d12;
+            color: rgba(230, 239, 255, 0.9);
+            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+            min-height: 100vh;
+            padding: 48px 24px 80px;
+        }
+
+        .wrap { max-width: 920px; margin: 0 auto; }
+
+        a.back {
+            color: rgba(160, 170, 200, 0.7);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        a.back:hover { color: #fff; }
+
+        h1 {
+            color: #ffffff;
+            font-size: 2.8rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin: 18px 0 6px;
+            text-shadow: 0 0 20px rgba(106, 168, 254, 0.35);
+        }
+
+        .tagline {
+            color: rgba(224, 232, 246, 0.92);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            max-width: 760px;
+            margin: 12px 0 8px;
+        }
+        .tagline strong { color: #fff; }
+
+        .section-label {
+            color: rgba(200, 210, 230, 0.85);
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin: 44px 0 6px;
+        }
+        .blurb {
+            color: rgba(190, 200, 222, 0.78);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            max-width: 760px;
+            margin: 0 0 14px;
+        }
+
+        pre.code {
+            background: #07080c;
+            border: 1px solid rgba(106, 168, 254, 0.18);
+            border-radius: 8px;
+            padding: 18px 20px;
+            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+            font-size: 0.86rem;
+            font-weight: 300;
+            line-height: 1.62;
+            color: rgba(224, 232, 246, 0.92);
+            overflow-x: auto;
+            white-space: pre;
+        }
+        pre.code .c { color: rgba(130, 150, 180, 0.75); }   /* comments */
+        pre.code .k { color: #cfe0ff; }                      /* keywords / emphasis */
+
+        .lang {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 0.66rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(150, 200, 255, 0.85);
+            border: 1px solid rgba(106, 168, 254, 0.3);
+            border-radius: 4px;
+            padding: 2px 8px;
+            vertical-align: middle;
+        }
+
+        .foot {
+            margin-top: 52px;
+            color: rgba(190, 200, 222, 0.75);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .foot a { color: rgba(200, 210, 230, 0.85); text-decoration: none; border-bottom: 1px solid rgba(106, 168, 254, 0.3); }
+        .foot a:hover { color: #fff; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; letter-spacing: 3px; }
+            pre.code { font-size: 0.76rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <a class="back" href="stack.html">&larr; The Dry Stack</a>
+
+        <h1>Code</h1>
+        <p class="tagline">The core is <strong>C++</strong>; you write your app in <strong>C#</strong>
+            against thin, zero-copy wrappers. Every snippet below is lifted straight from the
+            repo's samples &mdash; real API, not pseudo-code.</p>
+
+        <div class="section-label">Facts &mdash; store &amp; query<span class="lang">C#</span></div>
+        <p class="blurb">Open a shard, batch-ingest a column, then run a SIMD scan and an aggregate &mdash;
+            answers come back in microseconds.</p>
+        <pre class="code"><span class="c">// from tests/Facts.Smoke</span>
+using Dry.Facts;
+
+Facts.LoadNative();
+
+<span class="c">// One shard: a single F64 "value" column, tags 0..999, no ref payload.</span>
+using var db = new FactsDb();
+db.Open(root, new[] { ShardSpec.WithColumns(tagMax: 999, hasRef: false, ColumnType.F64) });
+
+<span class="c">// Ingest a batch: write the column, commit under a tag, flush.</span>
+var w = db.CreateBatchBuffer(0, 4096, withTimestamps: false)
+          .Writer(db.AppenderFor(0));
+for (int i = 0; i &lt; 1_000_000; i++)
+{
+    w.ColumnSpan()[0] = BitConverter.DoubleToUInt64Bits(i * 0.5);
+    w.Commit(tag: (uint)(i % 1000), refLen: 0);
+}
+w.Flush();
+
+<span class="c">// Query: SIMD value-scan + a min/max/sum/mean aggregate.</span>
+var rdr  = db.ReaderFor(0);
+var recs = new ReadRangeRecord[16384];
+var cols = new ulong[16384];
+uint hits = rdr.ScanValueF64(col: 0, CmpOp.Gt, 32700.0, 0, ulong.MaxValue, recs, default, cols);
+
+ColStats st = rdr.AggValue(col: 0, 0, ulong.MaxValue);
+Console.WriteLine($"{hits} hits, mean={st.Mean:F2}, max={st.Max}");</pre>
+
+        <div class="section-label">Nio &mdash; messaging<span class="lang">C#</span></div>
+        <p class="blurb">A request/response server and client. The blocking round-trip is ~6&micro;s on
+            loopback; batched events go out with no per-message copies.</p>
+        <pre class="code"><span class="c">// from samples/Example</span>
+NioUnsafe.Init(partitionCount: 8, cqSize: 1024);
+
+<span class="c">// Server: answer PING with PONG.</span>
+var server = new Server(partitionId: 0);
+server.Listen("127.0.0.1", 19000);
+server.OnRequest = (Session s, uint seq, ushort type, ReadOnlySpan&lt;byte&gt; payload) =&gt;
+{
+    if (type == TYPE_PING) s.Respond(seq, TYPE_PONG, payload);
+};
+server.Start();
+
+<span class="c">// Client: blocking request/response (~6 us round-trip on loopback).</span>
+using var client = new Client(partitionId: 1);
+client.Connect("127.0.0.1", 19000);
+var reply = client.Query(TYPE_PING, ping);   <span class="c">// reply.TypeId == TYPE_PONG</span>
+
+<span class="c">// Fire millions of events with zero copies by batching into the TX slot.</span>
+using (var batch = client.BeginBatch())
+    for (int i = 0; i &lt; 32_000; i++)
+        batch.SendEvent(TYPE_EVENT, payload);</pre>
+
+        <div class="section-label">File transfer &mdash; an app on Nio<span class="lang">C#</span></div>
+        <p class="blurb">What you build on top: a full file &amp; directory transfer server and client &mdash;
+            list, upload, download whole trees &mdash; is a thin layer over Nio. This is essentially the
+            whole thing.</p>
+        <pre class="code"><span class="c">// from samples/FtServer + samples/FtClient</span>
+using Dry.Nio;
+using Dry.FileTransfer;
+
+Nio.Init(partitionCount: 1, cqSize: 1024);
+
+<span class="c">// Server: serve a directory.</span>
+var server = new FileTransferServer(partitionId: 0);
+server.OnTransferComplete = path =&gt; Console.WriteLine($"[sent] {path}");
+server.Listen("127.0.0.1", 22100, rootPath: "ftroot");
+server.Start();
+
+<span class="c">// Client: connect, then pull a file — or a whole tree.</span>
+using var client = new FileTransferClient(partitionId: 0);
+client.Connect("127.0.0.1", 22100);
+
+var r = client.Download("large.bin", "local.bin", overwrite: true);
+Console.WriteLine($"{r.BytesReceived} bytes  success={r.Success}");
+
+client.UploadDirectory("demo_docs", "uploads/docs", overwrite: true);</pre>
+
+        <div class="section-label">Zao &mdash; serialize<span class="lang">C#</span></div>
+        <p class="blurb">Tag a struct with <span style="color:#cfe0ff;">[WireType]</span>; the source generator
+            emits <code>WriteTo</code> / <code>ReadFrom</code> / <code>MaxSize</code> at build time. Blittable
+            types serialize at memcpy speed.</p>
+        <pre class="code"><span class="c">// from samples/Example2</span>
+using Dry.Zao;
+
+<span class="c">// Declare a wire type — codegen does the rest, no reflection at runtime.</span>
+[WireType(0x01)]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public partial struct PlayerMoved
+{
+    public int   PlayerId;
+    public float X, Y, Z;
+}
+
+var msg = new PlayerMoved { PlayerId = 42, X = 1.5f, Y = 2.5f, Z = -3f };
+
+byte[] buf = new byte[PlayerMoved.MaxSize];
+int n = msg.WriteTo(buf);                       <span class="c">// serialize  (tier-0: pure memcpy)</span>
+PlayerMoved back = PlayerMoved.ReadFrom(buf);   <span class="c">// deserialize</span>
+
+<span class="c">// Richer shapes just work too — strings, arrays, List&lt;T&gt;, Dictionary&lt;K,V&gt;.</span></pre>
+
+        <div class="section-label">Facts &mdash; the native core<span class="lang">C++</span></div>
+        <p class="blurb">The same engine underneath the C# wrapper. The C ABI is what every language binds
+            to; this is the Linux bring-up smoke test.</p>
+        <pre class="code"><span class="c">// from src/factslib/linux_smoke.cpp</span>
+#include "facts_db_capi.h"
+
+ColumnDesc cols[1] = {};  cols[0].type = ColumnType::F64;
+ShardConfig cfg{};
+cfg.columns = cols;  cfg.n_columns = 1;  cfg.has_ref = 1;
+cfg.tag_min = 0;     cfg.tag_max = 99;
+
+facts_db_t* db = facts_db_create();
+facts_db_open(db, root, &amp;cfg, 1, 0);
+
+facts_appender_t* ap = facts_db_appender(db);
+for (uint64_t i = 0; i &lt; N; ++i)
+    facts_appender_append(ap, <span class="c">/*tag*/</span> i % 100, 0, &amp;cv, 0, ref8, 8);
+facts_db_flush(db);
+
+facts_reader_t* rd = facts_db_reader_for(db, 0);
+uint32_t got = facts_reader_scan_value(rd, <span class="c">/*col*/</span> 0, <span class="c">/*Gt*/</span> 1, f64_bits(0.0),
+                                       0, UINT64_MAX, recs, pay, paycap, colv, reccap);</pre>
+
+        <div class="foot">
+            Want the full samples, or to build against it? <a href="mailto:info@drylane.io">info@drylane.io</a>
+        </div>
+    </div>
+</body>
+</html>

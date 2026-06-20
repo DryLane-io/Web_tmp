@@ -10,7 +10,7 @@
         body {
             background-color: #0c0d12;
             color: rgba(230, 239, 255, 0.9);
-            font-family: 'Courier New', monospace;
+            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
             min-height: 100vh;
             padding: 48px 24px 80px;
         }
@@ -84,7 +84,7 @@
             border: 1px solid rgba(106, 168, 254, 0.35);
             border-radius: 6px;
             color: #cfe0ff;
-            font-family: 'Courier New', monospace;
+            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
             font-size: 0.78rem;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -107,14 +107,57 @@
             overflow-x: auto;
             white-space: pre;
         }
+
+        /* Plain-English sell block, above the proof. */
+        .sell {
+            color: rgba(214, 224, 244, 0.92);
+            font-size: 1.02rem;
+            line-height: 1.78;
+            max-width: 780px;
+            margin: 0 0 14px;
+        }
+        .sell strong { color: #fff; }
+        .sell .kicker {
+            color: rgba(150, 200, 255, 0.85);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+        }
+        .cta {
+            display: inline-block;
+            margin: 22px 0 8px;
+            color: #fff;
+            text-decoration: none;
+            border: 1px solid rgba(106, 168, 254, 0.5);
+            border-radius: 8px;
+            padding: 11px 24px;
+            font-size: 0.82rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: background 0.2s ease, box-shadow 0.2s ease;
+        }
+        .cta:hover { background: rgba(106, 168, 254, 0.12); box-shadow: 0 0 26px rgba(106, 168, 254, 0.42); }
     </style>
 </head>
 <body>
     <div class="wrap">
-        <a class="back" href="index.html">&larr; Drylane.io</a>
+        <a class="back" href="stack.html">&larr; The Dry Stack</a>
 
         <h1>Facts</h1>
         <div class="tagline">Embedded time-series fact store &mdash; SIMD query surfaces over billions of records.</div>
+
+        <p class="sell"><span class="kicker">What it is.</span> A time-series engine that lives
+            <strong>inside your process</strong> &mdash; no server to deploy, no network hop to query.
+            It holds billions of timestamped facts and answers range, tag, scan and aggregate
+            queries with SIMD in <strong>microseconds</strong>.</p>
+        <p class="sell"><span class="kicker">The problem it kills.</span> The usual answer to
+            &ldquo;a lot of time-series data, queried fast&rdquo; is a cluster of database nodes you
+            have to run, tune and pay for. Facts does it on <strong>one box</strong>.</p>
+        <p class="sell"><span class="kicker">For example.</span> Store every tick from thousands of
+            sensors or market symbols, then ask &ldquo;what did device&nbsp;4200 look like between
+            09:00 and 09:05&rdquo; &mdash; and get the answer back before a network round-trip would
+            have even finished.</p>
+        <a class="cta" href="https://live.drylane.io">See it live &#10230;</a>
 
         <div class="section-label">Live showcase &middot; benchmark dashboard</div>
         <div class="shot-wrap" id="shot-wrap">

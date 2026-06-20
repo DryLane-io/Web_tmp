@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Dry Stack — what it is</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #0c0d12;
+            color: rgba(230, 239, 255, 0.9);
+            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+            min-height: 100vh;
+            padding: 48px 24px 80px;
+        }
+
+        /* Subtle drifting particle field — the calm at the eye of the storm.
+           Sits behind all content; purely decorative. */
+        #eye-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            display: block;
+        }
+
+        .wrap { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+
+        a.back {
+            color: rgba(160, 170, 200, 0.7);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        a.back:hover { color: #fff; }
+
+        h1 {
+            color: #ffffff;
+            font-family: 'Special Elite', 'Courier New', monospace;
+            font-size: 2.8rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin: 18px 0 6px;
+            text-shadow: 0 0 20px rgba(106, 168, 254, 0.35);
+        }
+
+        .lede {
+            color: rgba(224, 232, 246, 0.92);
+            font-size: 1.05rem;
+            line-height: 1.75;
+            max-width: 760px;
+            margin: 14px 0 8px;
+        }
+
+        .lede strong { color: #fff; }
+
+        .sub {
+            color: rgba(190, 200, 222, 0.75);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            max-width: 760px;
+            margin: 0 0 16px;
+        }
+        .sub strong { color: rgba(224, 232, 246, 0.95); }
+
+        .section-label {
+            color: rgba(200, 210, 230, 0.85);
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin: 44px 0 16px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        a.card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            background: #07080c;
+            border: 1px solid rgba(106, 168, 254, 0.18);
+            border-radius: 8px;
+            padding: 20px 22px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        a.card:hover {
+            border-color: rgba(106, 168, 254, 0.55);
+            box-shadow: 0 0 28px rgba(106, 168, 254, 0.18);
+            transform: translateY(-2px);
+        }
+
+        .card .name {
+            color: #ffffff;
+            font-size: 1.25rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            text-shadow: 0 0 14px rgba(106, 168, 254, 0.4);
+        }
+        .card .what {
+            color: rgba(206, 216, 236, 0.9);
+            font-size: 0.92rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .card .why {
+            color: rgba(170, 182, 208, 0.72);
+            font-size: 0.82rem;
+            line-height: 1.55;
+        }
+        .card .tag {
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(150, 200, 255, 0.85);
+            border: 1px solid rgba(106, 168, 254, 0.3);
+            border-radius: 4px;
+            padding: 2px 8px;
+        }
+
+        .foot {
+            margin-top: 56px;
+            color: rgba(190, 200, 222, 0.75);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .foot a {
+            color: rgba(200, 210, 230, 0.85);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(106, 168, 254, 0.3);
+        }
+        .foot a:hover { color: #fff; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; letter-spacing: 3px; }
+            .lede { font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="eye-canvas"></canvas>
+    <div class="wrap">
+        <a class="back" href="index.html">&larr; back to the storm</a>
+
+        <h1>The Dry Stack</h1>
+        <p class="lede">Most systems are glued together from three separate pieces: a
+            <strong>database</strong> to store data, a <strong>message queue</strong> to move it,
+            and a <strong>serializer</strong> to pack it on the wire. Every seam between them is a
+            copy, a serialization pass, and a point of latency.</p>
+        <p class="lede"><strong>Drylane is all three, fused into one stack that runs on a single
+            box</strong> &mdash; ingesting <strong>66 million records a second</strong> and answering
+            queries in <strong>microseconds</strong>. No cluster required to be fast.</p>
+        <p class="sub">Runs on <strong>Windows</strong> and <strong>Linux</strong>, tuned down to the
+            SIMD for <strong>Intel</strong>, <strong>AMD</strong> and <strong>ARM</strong> &mdash; the
+            same engine from a server rack to a Raspberry&nbsp;Pi.</p>
+        <p class="sub">The core is <strong>C++</strong>, with idiomatic <strong>C#</strong> wrappers on
+            top &mdash; write your app in C# and get native, zero-copy speed underneath, no glue code
+            to maintain.</p>
+        <p class="sub">Everything below is running live. Click any card &mdash; the demos are real
+            engines serving real queries, not screenshots.</p>
+
+        <div class="section-label">The three pieces</div>
+        <div class="grid">
+            <a class="card" href="facts.html">
+                <div class="name">Facts</div>
+                <div class="what">A time-series store that answers in microseconds &mdash; SIMD query
+                    surfaces over billions of records.</div>
+                <div class="why">Replaces the database. Where you'd reach for InfluxDB or
+                    Timescale, on one box, far faster.</div>
+            </a>
+            <a class="card" href="nio.html">
+                <div class="name">Nio</div>
+                <div class="what">The zero-copy network layer &mdash; ~100M messages/second, ~6&micro;s
+                    round-trips over loopback.</div>
+                <div class="why">Replaces the message queue. Where you'd reach for Kafka, without
+                    the copies and the hops.</div>
+            </a>
+            <a class="card" href="zao.html">
+                <div class="name">Zao</div>
+                <div class="what">Serialization at memcpy speed &mdash; tiered codegen reaching
+                    ~67 GB/s on the fast path.</div>
+                <div class="why">Replaces the serializer. Where you'd reach for Protobuf, at the
+                    speed of a raw memory copy.</div>
+            </a>
+        </div>
+
+        <div class="section-label">See it live</div>
+        <div class="grid">
+            <a class="card" href="https://api.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Benchmarks</div>
+                <div class="what">The full query benchmark suite, run live on the box &mdash; every API
+                    surface with its median and p99 latency, straight from the engine.</div>
+            </a>
+            <a class="card" href="https://live.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Market Wall</div>
+                <div class="what">A live command-center wall ingesting synthetic market data, with
+                    queries running continuously against the stream.</div>
+            </a>
+            <a class="card" href="https://f1.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">F1 Replay</div>
+                <div class="what">A real Formula 1 race ingested once, then replayed and queried
+                    &mdash; point-in-time and whole-race aggregates in microseconds.</div>
+            </a>
+            <a class="card" href="https://chaos.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Replication &amp; Failover</div>
+                <div class="what">A two-node cluster you can break on purpose: cut the link, force a
+                    failover, watch it heal &mdash; no split-brain, bounded loss.</div>
+                <div class="why">Epoch-based async replication with veto failover &mdash; a stale node
+                    can't win an election, so two leaders can never exist.</div>
+            </a>
+            <a class="card" href="https://log.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Log Viewer</div>
+                <div class="what">A virtualized browser over a huge live log &mdash; only the visible
+                    window is read, including the unsealed tail.</div>
+            </a>
+            <a class="card" href="https://pi.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Raspberry Pi</div>
+                <div class="what">The same engine on a $35 ARM board &mdash; the stack is small enough
+                    to run where the data is born.</div>
+            </a>
+        </div>
+
+        <div class="section-label">Write the code</div>
+        <div class="grid">
+            <a class="card" href="code.html">
+                <div class="name">Code &amp; usage</div>
+                <div class="what">Real C# snippets &mdash; open a store and query it, send messages,
+                    serialize a struct &mdash; plus a peek at the C++ core, straight from the samples.</div>
+            </a>
+        </div>
+
+        <div class="foot">
+            Want to talk, build on it, or just kick the tires?
+            <a href="mailto:info@drylane.io">info@drylane.io</a>
+        </div>
+    </div>
+
+    <script>
+        // Eye-of-the-storm ambience: a sparse field of faint particles drifting in a
+        // slow swirl. Decorative only; pauses for prefers-reduced-motion.
+        (() => {
+            const canvas = document.getElementById('eye-canvas');
+            const ctx = canvas.getContext('2d');
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let w, h, cx, cy, particles;
+
+            function seed() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                cx = w / 2; cy = h / 2;
+                const count = Math.min(280, Math.floor(w * h / 7000));
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        r: Math.random() * 1.4 + 0.4,
+                        a: Math.random() * 0.35 + 0.06,
+                        drift: Math.random() * 0.0006 + 0.0002,   // angular speed (swirl)
+                        vy: Math.random() * 0.12 + 0.03            // gentle upward drift
+                    });
+                }
+            }
+
+            function draw(animate) {
+                ctx.clearRect(0, 0, w, h);
+                for (const p of particles) {
+                    if (animate) {
+                        // slow rotation about the centre — the calm swirl of the eye
+                        const dx = p.x - cx, dy = p.y - cy;
+                        const cos = Math.cos(p.drift), sin = Math.sin(p.drift);
+                        p.x = cx + dx * cos - dy * sin;
+                        p.y = cy + dx * sin + dy * cos - p.vy;
+                        if (p.y < -5) p.y = h + 5;
+                        if (p.x < -5) p.x = w + 5; else if (p.x > w + 5) p.x = -5;
+                    }
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(150, 185, 235, ' + p.a + ')';
+                    ctx.fill();
+                }
+                if (animate) requestAnimationFrame(() => draw(true));
+            }
+
+            seed();
+            draw(!reduce);
+            window.addEventListener('resize', () => { seed(); if (reduce) draw(false); });
+        })();
+    </script>
+</body>
+</html>
