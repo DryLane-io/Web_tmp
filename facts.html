@@ -137,6 +137,41 @@
             transition: background 0.2s ease, box-shadow 0.2s ease;
         }
         .cta:hover { background: rgba(106, 168, 254, 0.12); box-shadow: 0 0 26px rgba(106, 168, 254, 0.42); }
+
+        /* Head-to-head comparison table. */
+        .cmp {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            margin: 4px 0 14px;
+        }
+        .cmp th, .cmp td {
+            text-align: left;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(106, 168, 254, 0.12);
+        }
+        .cmp thead th {
+            color: rgba(200, 210, 230, 0.85);
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.74rem;
+        }
+        .cmp td.metric { color: rgba(214, 224, 244, 0.92); }
+        .cmp td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .cmp td.win { color: #8fe6b0; }           /* faster / better cell */
+        .cmp td.lose { color: rgba(224, 232, 246, 0.55); }
+        .cmp tbody tr:last-child td { border-bottom: none; }
+        .cmp .cores { font-size: 0.72rem; color: rgba(160, 170, 200, 0.7); letter-spacing: 0; text-transform: none; }
+
+        .note {
+            color: rgba(180, 190, 214, 0.78);
+            font-size: 0.82rem;
+            line-height: 1.6;
+            max-width: 820px;
+            margin: 4px 0 8px;
+        }
+        .note strong { color: rgba(214, 224, 244, 0.92); }
     </style>
 </head>
 <body>
@@ -158,6 +193,34 @@
             09:00 and 09:05&rdquo; &mdash; and get the answer back before a network round-trip would
             have even finished.</p>
         <a class="cta" href="https://live.drylane.io">See it live &#10230;</a>
+
+        <div class="section-label">Head to head &middot; Facts vs DuckDB</div>
+        <p class="sell">We put Facts against <strong>DuckDB</strong> &mdash; a fast in-process
+            analytical engine &mdash; on real <strong>TSBS</strong> data (the standard time-series
+            benchmark): the same 8.19-million-row dataset, on the same machine, warm. Facts ran on
+            <strong>one core</strong>; DuckDB got <strong>all 32</strong>.</p>
+        <table class="cmp">
+            <thead>
+                <tr>
+                    <th>Workload</th>
+                    <th>Facts <span class="cores">(1 core)</span></th>
+                    <th>DuckDB <span class="cores">(32 cores)</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="metric">Ingest</td>                <td class="num win">20 M rows/s</td>   <td class="num lose">2.3 M rows/s</td></tr>
+                <tr><td class="metric">Latest value (point query)</td><td class="num win">~46 &micro;s</td>  <td class="num lose">~4.3 ms</td></tr>
+                <tr><td class="metric">High-CPU filter (TSBS query)</td><td class="num win">107 M rows/s</td><td class="num lose">47 M rows/s</td></tr>
+                <tr><td class="metric">Full-range aggregate</td>    <td class="num win">1.6 ms</td>        <td class="num lose">7.9 ms</td></tr>
+                <tr><td class="metric">Columnar scan (SIMD kernel)</td><td class="num win">66 GB/s</td>    <td class="num lose">7 GB/s</td></tr>
+                <tr><td class="metric">Storage per point</td>       <td class="num lose">96 B</td>          <td class="num win">25 B</td></tr>
+            </tbody>
+        </table>
+        <p class="note">Medians from our open harness (<strong>Facts.Benchmarks</strong>) on real
+            TSBS <em>cpu-only</em> data. DuckDB got every advantage: all cores, its fastest bulk-load
+            (Parquet&nbsp;<code>COPY</code>) and a host index. Facts wins on one core everywhere except
+            <strong>storage density</strong> &mdash; DuckDB compresses; Facts keeps data raw and
+            memory-mapped for speed. Honest trade, stated plainly.</p>
 
         <div class="section-label">Live showcase &middot; benchmark dashboard</div>
         <div class="shot-wrap" id="shot-wrap">
