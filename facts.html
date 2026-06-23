@@ -247,7 +247,7 @@
                 <tr><td class="metric">Latest value (point query)</td> <td class="num win">39 &micro;s</td>    <td class="num lose">260 &micro;s</td>  <td class="num lose">56 ms</td></tr>
                 <tr><td class="metric">Range read (one window)</td>     <td class="num win">0.25 ms</td>       <td class="num lose">1.15 ms</td>       <td class="num lose">36 ms</td></tr>
                 <tr><td class="metric">High-CPU filter (TSBS query)</td><td class="num win">5.2 ms</td>        <td class="num lose">105 ms</td>         <td class="num lose">846 ms</td></tr>
-                <tr><td class="metric">Storage per point</td>          <td class="num lose">96 B</td>          <td class="num lose">111 B</td>          <td class="num win">~88 B</td></tr>
+                <tr><td class="metric">Storage per point <span class="cores">(at rest on disk)</span></td><td class="num lose">96 B</td><td class="num win">~23 B</td><td class="num win">~86 B</td></tr>
             </tbody>
         </table>
         <p class="sell"><span class="kicker">What that means.</span> On ingest, Facts is about
@@ -264,12 +264,15 @@
             &mdash; every number is spelled out as ASCII and re-parsed, a tax that dominates at
             millions of rows per second. Facts&rsquo; ingest tops out at one connection because a
             single server thread is already saturating the link; the rivals genuinely need the extra
-            connections to reach the numbers shown. <strong>The honest losses:</strong> InfluxDB packs
-            points a touch denser on disk (~88&nbsp;B vs our&nbsp;96), and both rivals are full query
-            languages (SQL&nbsp;/&nbsp;Flux, joins, ad-hoc) with far bigger ecosystems &mdash; Facts
-            trades that breadth for raw speed on the queries it does support. InfluxDB&rsquo;s v2/Flux
-            engine is also known to be slow on these access patterns; its newer v3 would narrow the
-            query gap.</p>
+            connections to reach the numbers shown. <strong>These speeds are with full durability:</strong>
+            re-run with every engine writing to a real NVMe SSD instead of RAM, Facts held at
+            <strong>25&nbsp;M rows/s</strong> &mdash; flushing to disk is essentially free for it.
+            <strong>The honest loss is storage density:</strong> at rest on disk, QuestDB
+            (~23&nbsp;B/point) and InfluxDB (~86&nbsp;B) <em>compress</em> their columns; Facts keeps
+            data raw and memory-mapped at ~96&nbsp;B &mdash; the same speed-for-size trade we make
+            against DuckDB. Both rivals are also full query languages (SQL&nbsp;/&nbsp;Flux, joins,
+            ad-hoc) with far bigger ecosystems. InfluxDB&rsquo;s v2/Flux engine is additionally known
+            to be slow on these access patterns; its newer v3 would narrow the query gap.</p>
 
         <div class="section-label">Live showcase &middot; benchmark dashboard</div>
         <div class="shot-wrap" id="shot-wrap">
