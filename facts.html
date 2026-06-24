@@ -300,6 +300,60 @@
             </div>
         </div>
 
+        <div class="section-label">Engineered for scale &middot; no weak links</div>
+        <p class="sell"><span class="kicker">The whole stack, one standard.</span> Facts is one layer
+            of a stack &mdash; <strong>store, network, and serialization</strong> &mdash; where every
+            layer is tuned to the same bar. There&rsquo;s no slow component quietly capping the rest,
+            no glue code bleeding away the speed. The same engine scales from a
+            <strong>Raspberry&nbsp;Pi to a server</strong>, and from <strong>one box to many</strong>.</p>
+        <div class="model">
+            <div class="part">
+                <span class="tag">capacity</span>
+                <h3>Limits</h3>
+                <p><strong>Billions</strong> of records on a single box &mdash; the ceiling is your
+                    <strong>disk</strong>, not the engine, with optional retention caps that evict the
+                    oldest data automatically.</p>
+                <p>Up to <strong>~16&nbsp;million distinct series</strong> per shard, and a variable-size
+                    blob of up to <strong>256&nbsp;MiB per record</strong>.</p>
+            </div>
+            <div class="part">
+                <span class="tag">scale out</span>
+                <h3>Shards</h3>
+                <p>Split a dataset into independent <strong>shards</strong> for parallel ingest and
+                    query. Throughput <strong>scales with cores</strong> &mdash; add shards, add speed
+                    &mdash; with no cross-shard coordination on the hot path.</p>
+            </div>
+            <div class="part">
+                <span class="tag">on disk</span>
+                <h3>Segments</h3>
+                <p>Data is written in <strong>immutable, self-describing segments</strong>. Each one is
+                    independently <strong>checksummed and recoverable</strong>, so a single bad block
+                    never takes the dataset down.</p>
+            </div>
+            <div class="part">
+                <span class="tag">stays up</span>
+                <h3>Redundancy &amp; failover</h3>
+                <p>Built-in replication with <strong>veto-based failover</strong>: a stale replica
+                    can&rsquo;t win an election, so two leaders can never exist &mdash;
+                    <strong>no split-brain</strong>, and a bounded, well-defined loss window. Break it
+                    yourself in the <a href="https://chaos.drylane.io">live demo</a>.</p>
+            </div>
+            <div class="part">
+                <span class="tag">crash-safe</span>
+                <h3>Durability</h3>
+                <p>A periodic checkpoint sets your <strong>maximum loss window</strong>, and every
+                    segment <strong>verifies its own integrity on open</strong> and repairs what it
+                    can &mdash; power loss doesn&rsquo;t corrupt the store.</p>
+            </div>
+            <div class="part">
+                <span class="tag">runs anywhere</span>
+                <h3>Reach</h3>
+                <p>One codebase, tuned down to the <strong>SIMD</strong> for Intel, AMD and
+                    <strong>ARM</strong>, on <strong>Windows and Linux</strong> &mdash; the same engine
+                    from a server rack to a $35 board.</p>
+            </div>
+        </div>
+
         <div class="section-label">See it live &middot; demos running on the box</div>
         <p class="sell">Every card is a real Facts engine serving real queries &mdash; not a screenshot.</p>
         <div class="grid">
