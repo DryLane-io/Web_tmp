@@ -118,12 +118,17 @@
         }
 
         .tagline {
+            display: inline-block;
             font-size: 1.0rem;
             color: rgba(200, 210, 230, 0.7);
             text-shadow: 0 0 10px rgba(106, 168, 254, 0.2);
             margin-bottom: 20px;
             letter-spacing: 3px;
+            text-decoration: none;
+            pointer-events: auto;   /* the overlay is click-through; re-enable so this links explicitly */
+            transition: color 0.2s ease;
         }
+        .tagline:hover { color: rgba(230, 239, 255, 0.95); }
 
         .spacer {
             font-size: 1.0rem;
@@ -211,7 +216,7 @@
 
     <div class="text-overlay">
         <div class="title">DRYLANE.IO</div>
-        <div class="tagline">--- The Dry Stack ---</div>
+        <a class="tagline" href="stack.html">--- The Dry Stack ---</a>
         <div class="stack"><a class="facts-link" href="facts.html">Facts</a> | <a class="facts-link" href="nio.html">Nio</a> | <a class="facts-link" href="zao.html">Zao</a> </div>
         <div class="spacer">--- Demos ---</div>
         <div class="stack"><a class="facts-link" href="https://live.drylane.io">Live Demo</a> | <a class="facts-link" href="https://f1.drylane.io">F1 Replay</a> | <a class="facts-link" href="https://api.drylane.io">API Bench</a> | <a class="facts-link" href="https://log.drylane.io">Logs</a> | <a class="facts-link" href="https://chaos.drylane.io">Chaos</a> | <a class="facts-link" href="https://pi.drylane.io">PI</a> | <a class="facts-link" href="https://drylane.io/code.html">Code</a></div>
@@ -410,9 +415,10 @@
 
         animate();
 
-        // The whole storm is a doorway — a click anywhere walks into the eye.
+        // The whole storm is a doorway — a click on the backdrop walks into the eye. But a click on a
+        // real link (demos, modules, contact) must follow that link, not race it to stack.html.
         document.body.style.cursor = 'pointer';
-        window.addEventListener('click', () => { window.location.href = 'stack.html'; });
+        window.addEventListener('click', (e) => { if (e.target.closest('a')) return; window.location.href = 'stack.html'; });
     </script>
 </body>
 </html>
