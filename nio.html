@@ -121,7 +121,12 @@
         }
         table.cmp tr.nio td { color: #eaf2ff; background: rgba(106, 168, 254, 0.06); }
         table.cmp tr.nio td:first-child { color: #fff; font-weight: 600; }
-        .win { color: #7cffb2; }
+        .win { color: #8fe6b0; }
+        .lose { color: #ff7b88; }
+        /* the .nio row sets its own cell color; re-assert win/lose with higher specificity so the
+           highlighted row still shows green wins and red losses. */
+        table.cmp tr.nio td.win { color: #8fe6b0; }
+        table.cmp tr.nio td.lose { color: #ff7b88; }
         .muted { color: rgba(160, 170, 200, 0.55); }
 
         /* Headline callout. */
@@ -185,10 +190,10 @@
             </thead>
             <tbody>
                 <tr class="nio"><td>Nio</td><td class="win">16&nbsp;&micro;s</td><td>28M&nbsp;msg/s</td><td class="win">2.67&nbsp;GiB/s</td></tr>
-                <tr><td>raw sockets</td><td>52&nbsp;&micro;s</td><td>28&ndash;40M&nbsp;msg/s</td><td>2.34&nbsp;GiB/s</td></tr>
+                <tr><td>raw sockets</td><td>52&nbsp;&micro;s</td><td class="win">28&ndash;40M&nbsp;msg/s</td><td>2.34&nbsp;GiB/s</td></tr>
                 <tr><td>NetCoreServer</td><td>33&nbsp;&micro;s</td><td>4.0M&nbsp;msg/s</td><td>0.39&nbsp;GiB/s</td></tr>
-                <tr><td>WebSockets</td><td>67&nbsp;&micro;s</td><td>75K&nbsp;msg/s</td><td>0.86&nbsp;GiB/s</td></tr>
-                <tr><td>gRPC</td><td>179&nbsp;&micro;s</td><td>49K&nbsp;msg/s</td><td>0.15&nbsp;GiB/s</td></tr>
+                <tr><td>WebSockets</td><td>67&nbsp;&micro;s</td><td class="lose">75K&nbsp;msg/s</td><td>0.86&nbsp;GiB/s</td></tr>
+                <tr><td>gRPC</td><td class="lose">179&nbsp;&micro;s</td><td class="lose">49K&nbsp;msg/s</td><td class="lose">0.15&nbsp;GiB/s</td></tr>
             </tbody>
         </table>
         <p class="sell"><span class="kicker">Read it straight.</span> Nio matches hand-rolled raw
@@ -209,7 +214,7 @@
             </thead>
             <tbody>
                 <tr class="nio"><td>Nio</td><td>206M&nbsp;msg/s</td><td class="win">12</td><td class="win">17M&nbsp;msg/s</td></tr>
-                <tr><td>raw thread-per-conn</td><td>299M&nbsp;msg/s</td><td>128</td><td>2.3M&nbsp;msg/s</td></tr>
+                <tr><td>raw thread-per-conn</td><td class="win">299M&nbsp;msg/s</td><td class="lose">128</td><td class="lose">2.3M&nbsp;msg/s</td></tr>
             </tbody>
         </table>
 
@@ -222,7 +227,7 @@
             </thead>
             <tbody>
                 <tr class="nio"><td>Nio</td><td>130M&nbsp;msg/s</td><td class="win">12</td><td class="win">~12&nbsp;MB</td><td class="win">1.0&nbsp;s</td></tr>
-                <tr><td>raw thread-per-conn</td><td>307M&nbsp;msg/s</td><td>2,000</td><td>~2&nbsp;GB</td><td class="muted">7.2&nbsp;s</td></tr>
+                <tr><td>raw thread-per-conn</td><td class="win">307M&nbsp;msg/s</td><td class="lose">2,000</td><td class="lose">~2&nbsp;GB</td><td class="lose">7.2&nbsp;s</td></tr>
             </tbody>
         </table>
         <div class="callout">

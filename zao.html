@@ -119,7 +119,8 @@
             text-align: left;
             color: rgba(224, 232, 246, 0.95);
         }
-        .cmp .win { color: #7fd4a0; font-weight: 500; }
+        .cmp .win { color: #8fe6b0; font-weight: 500; }
+        .cmp .lose { color: #ff7b88; }
         .cmp .sub {
             color: rgba(160, 170, 200, 0.6);
             font-size: 0.66rem;
@@ -178,11 +179,11 @@
                 </tr>
             </thead>
             <tbody>
-                <tr><td>PlayerMoved &middot; 16&nbsp;B blit</td><td class="win">0.87&nbsp;ns</td><td>3.11&nbsp;ns</td><td>42&nbsp;ns</td><td>141&nbsp;ns</td><td>305&nbsp;ns</td></tr>
-                <tr><td>SpawnEntity &middot; + string</td><td class="win">12.5&nbsp;ns</td><td>26&nbsp;ns</td><td>58&nbsp;ns</td><td>143&nbsp;ns</td><td>282&nbsp;ns</td></tr>
-                <tr><td>Snapshot &middot; 32 entities</td><td class="win">10.8&nbsp;ns</td><td>36.7&nbsp;ns</td><td>491&nbsp;ns</td><td>1,997&nbsp;ns</td><td>8,265&nbsp;ns</td></tr>
-                <tr><td>Snapshot &middot; 1024 entities</td><td class="win">238&nbsp;ns</td><td>335&nbsp;ns</td><td>14,249&nbsp;ns</td><td>63,875&nbsp;ns</td><td>254,741&nbsp;ns</td></tr>
-                <tr><td>Inventory &middot; 128-key map</td><td class="win">1.65&nbsp;µs</td><td>3.18&nbsp;µs</td><td>2.74&nbsp;µs</td><td>8.20&nbsp;µs</td><td>3.49&nbsp;µs</td></tr>
+                <tr><td>PlayerMoved &middot; 16&nbsp;B blit</td><td class="win">0.87&nbsp;ns</td><td>3.11&nbsp;ns</td><td class="lose">42&nbsp;ns</td><td class="lose">141&nbsp;ns</td><td class="lose">305&nbsp;ns</td></tr>
+                <tr><td>SpawnEntity &middot; + string</td><td class="win">12.5&nbsp;ns</td><td>26&nbsp;ns</td><td class="lose">58&nbsp;ns</td><td class="lose">143&nbsp;ns</td><td class="lose">282&nbsp;ns</td></tr>
+                <tr><td>Snapshot &middot; 32 entities</td><td class="win">10.8&nbsp;ns</td><td>36.7&nbsp;ns</td><td class="lose">491&nbsp;ns</td><td class="lose">1,997&nbsp;ns</td><td class="lose">8,265&nbsp;ns</td></tr>
+                <tr><td>Snapshot &middot; 1024 entities</td><td class="win">238&nbsp;ns</td><td>335&nbsp;ns</td><td class="lose">14,249&nbsp;ns</td><td class="lose">63,875&nbsp;ns</td><td class="lose">254,741&nbsp;ns</td></tr>
+                <tr><td>Inventory &middot; 128-key map</td><td class="win">1.65&nbsp;µs</td><td>3.18&nbsp;µs</td><td>2.74&nbsp;µs</td><td class="lose">8.20&nbsp;µs</td><td class="lose">3.49&nbsp;µs</td></tr>
             </tbody>
         </table>
         </div>

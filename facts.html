@@ -160,7 +160,8 @@
         .cmp td.metric { color: rgba(214, 224, 244, 0.92); }
         .cmp td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .cmp td.win { color: #8fe6b0; }           /* faster / better cell */
-        .cmp td.lose { color: rgba(224, 232, 246, 0.55); }
+        .cmp td.lose { color: #ff7b88; }          /* slower / worse cell */
+        .cmp td.tie  { color: rgba(224, 232, 246, 0.55); }  /* our own weaker cell — muted, not red */
         .cmp tbody tr:last-child td { border-bottom: none; }
         .cmp .cores { font-size: 0.72rem; color: rgba(160, 170, 200, 0.7); letter-spacing: 0; text-transform: none; }
 
@@ -172,6 +173,7 @@
             margin: 4px 0 8px;
         }
         .note strong { color: rgba(214, 224, 244, 0.92); }
+        .fn { color: #8fb4ff; font-size: 0.66em; vertical-align: super; line-height: 0; }
 
         /* Data-model breakdown: timestamp+tag core, columns, blob. */
         .model { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 8px 0 8px; }
@@ -411,10 +413,10 @@
             <tbody>
                 <tr><td class="metric">Ingest</td>                <td class="num win">20 M rows/s</td>   <td class="num lose">2.3 M rows/s</td></tr>
                 <tr><td class="metric">Latest value (point query)</td><td class="num win">~0.2 &micro;s</td>  <td class="num lose">~4.3 ms</td></tr>
-                <tr><td class="metric">High-CPU filter (TSBS query)</td><td class="num win">107 M rows/s</td><td class="num lose">47 M rows/s</td></tr>
-                <tr><td class="metric">Full-range aggregate</td>    <td class="num win">1.6 ms</td>        <td class="num lose">7.9 ms</td></tr>
+                <tr><td class="metric">High-CPU filter (TSBS query)</td><td class="num win">107 M rows/s</td><td class="num">47 M rows/s</td></tr>
+                <tr><td class="metric">Full-range aggregate</td>    <td class="num win">1.6 ms</td>        <td class="num">7.9 ms</td></tr>
                 <tr><td class="metric">Columnar scan (SIMD kernel)</td><td class="num win">66 GB/s</td>    <td class="num lose">7 GB/s</td></tr>
-                <tr><td class="metric">Storage per point</td>       <td class="num lose">96 B</td>          <td class="num win">25 B</td></tr>
+                <tr><td class="metric">Storage per point</td>       <td class="num">96 B<sup class="fn">&dagger;</sup></td>          <td class="num win">25 B</td></tr>
             </tbody>
         </table>
         <p class="note">Medians from our open harness (<strong>Facts.Benchmarks</strong>) on real
@@ -422,6 +424,10 @@
             (Parquet&nbsp;<code>COPY</code>) and a host index. Facts wins on one core everywhere except
             <strong>storage density</strong> &mdash; DuckDB compresses; Facts keeps data raw and
             memory-mapped for speed. Honest trade, stated plainly.</p>
+        <p class="note">&dagger; Facts supports <strong>state-of-the-art compression on blob
+            payloads</strong> but keeps <strong>column data uncompressed</strong> &mdash; a deliberate
+            trade: the hot columnar path stays raw and memory-mapped for SIMD-speed scans, while bulky
+            blob data still packs down.</p>
 
         <div class="section-label">Head to head &middot; over the wire &middot; Facts vs QuestDB &amp; InfluxDB</div>
         <p class="sell">The test above was <em>in-process</em>. This one is <strong>over the wire</strong>
@@ -445,10 +451,10 @@
             </thead>
             <tbody>
                 <tr><td class="metric">Ingest</td>                     <td class="num win">24.6 M rows/s</td><td class="num lose">1.65 M rows/s</td><td class="num lose">0.24 M rows/s</td></tr>
-                <tr><td class="metric">Latest value (point query)</td> <td class="num win">39 &micro;s</td>    <td class="num lose">260 &micro;s</td>  <td class="num lose">56 ms</td></tr>
-                <tr><td class="metric">Range read (one window)</td>     <td class="num win">0.25 ms</td>       <td class="num lose">1.15 ms</td>       <td class="num lose">36 ms</td></tr>
+                <tr><td class="metric">Latest value (point query)</td> <td class="num win">39 &micro;s</td>    <td class="num">260 &micro;s</td>  <td class="num lose">56 ms</td></tr>
+                <tr><td class="metric">Range read (one window)</td>     <td class="num win">0.25 ms</td>       <td class="num">1.15 ms</td>       <td class="num lose">36 ms</td></tr>
                 <tr><td class="metric">High-CPU filter (TSBS query)</td><td class="num win">5.2 ms</td>        <td class="num lose">105 ms</td>         <td class="num lose">846 ms</td></tr>
-                <tr><td class="metric">Storage per point <span class="cores">(at rest on disk)</span></td><td class="num lose">96 B</td><td class="num win">~23 B</td><td class="num win">~86 B</td></tr>
+                <tr><td class="metric">Storage per point <span class="cores">(at rest on disk)</span></td><td class="num">96 B<sup class="fn">&dagger;</sup></td><td class="num win">~23 B</td><td class="num win">~86 B</td></tr>
             </tbody>
         </table>
         <p class="sell"><span class="kicker">What that means.</span> On ingest, Facts is about
